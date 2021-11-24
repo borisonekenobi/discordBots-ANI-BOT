@@ -1,113 +1,48 @@
 require('dotenv').config();
-const Discord = require('discord.js');
-let bot = new Discord.Client();
+const { Client, Intents } = require('discord.js');
+const fs = require('fs');
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS] });
 const TOKEN = process.env.TOKEN;
+
+let mostRecent = fs.readFileSync('./mostRecent.txt', 'utf8');
+const variables = require('./config.js')
+let channel;
 
 bot.login(TOKEN).then(r => console.log('Used token: ' + r));
 
 bot.on('ready', () => {
-    bot.user.setActivity('Star Wars')
-        .then(r => console.log(r));
     console.info(`Logged in as ${bot.user.tag}`);
-    bot.channels.cache.get('738439111412809730').send(':green_circle: Bot has started.');
+    channel = bot.channels.cache.get(variables.channelID);
+    main().then(r => console.log(r));
 });
 
-bot.ws.on('INTERACTION_CREATE', async interaction => {
-    try {
-        let type = interaction.type;
-        let guildID = interaction.guild_id;
-        let guild = bot.guilds.cache.get(guildID);
-        let authorID = interaction.member.user.id;
-        let author = guild.members.cache.get(authorID);
-        let name = interaction.data.name;
-        let content = 'An error occurred and a response could not be generated';
-        console.log('Interaction type ' + type + ' used by ' + authorID + ' in guild ' + guildID + ' in channel ' + interaction.channel_id);
-        //console.log(interaction);
+async function logAll(fileLines) {
+    for (let i = 0; i < fileLines.length - 1; i++) {
+        fs.writeFileSync('mostRecent.txt', fileLines[i], 'utf8');
+        await channel.send(fileLines[i]);
+    }
+}
 
-        switch (type) {
-            case 1:
-                console.log('type == 1');
-                console.log(interaction);
+async function logAfter(fileLines, startPos) {
+    for (let i = startPos; i < fileLines.length - 1; i++) {
+        fs.writeFileSync('mostRecent.txt', fileLines[i], 'utf8');
+        await channel.send(fileLines[i]);
+    }
+}
+
+async function main() {
+    let file = fs.readFileSync(variables.filepath, 'utf8');
+    let fileLines = file.split('\n');
+    if (mostRecent === '') {
+        await logAll(fileLines);
+    } else {
+        for (let i = 0; i < fileLines.length; i++) {
+            if (mostRecent === fileLines[i]) {
+                await logAfter(fileLines, i + 1);
                 break;
-
-            case 2: //slash command
-
-
-            case 3: //button
-
-        }
-
-        const createAPIMessage = async(interaction, content) => {
-            const { data, files } = await Discord.APIMessage.create(
-                bot.channels.resolve(interaction.channel_id),
-                content
-            )
-                .resolveData()
-                .resolveFiles()
-            return { ...data, files }
-        }
-
-        const reply = async (interaction, response) => {
-            let data = {
-                content: response
             }
-
-            if (typeof response === 'object') {
-                data = await createAPIMessage(interaction, response)
-            }
-
-            bot.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                    type: 4,
-                    data
-                }
-            })
-        };
-        await reply(interaction, content)
-
-    } catch (err) {
-
+        }
     }
-});
 
-bot.on('guildMemberAdd', member => {
-    try {
-
-    } catch (err) {
-
-    }
-});
-
-bot.on('message', msg => {
-    try {
-
-    } catch (err) {
-
-    }
-});
-
-const types = require('./types.js')
-
-bot.on('messageUpdate', (oldMessage, newMessage) => {
-    try {
-
-    } catch (err) {
-
-    }
-});
-
-bot.on("messageDelete", (deleteMessage) => {
-    try {
-
-    } catch (err) {
-
-    }
-});
-
-bot.on('guildMemberRemove', member => {
-    try {
-
-    } catch (err) {
-
-    }
-});
+    process.exit();
+}
