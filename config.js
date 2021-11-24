@@ -1,2 +1,4 @@
-const channelID = '';
-const filepath = '';
+module.exports = {
+    'channelID': '',
+    'filepath': ''
+}
