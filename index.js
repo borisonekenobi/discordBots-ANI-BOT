@@ -18,6 +18,7 @@ bot.on('ready', () => {
 
 async function logAll(fileLines) {
     for (let i = 0; i < fileLines.length - 1; i++) {
+        console.log(fileLines[i]);
         fs.writeFileSync('mostRecent.txt', fileLines[i], 'utf8');
         await channel.send(fileLines[i]);
     }
@@ -25,6 +26,7 @@ async function logAll(fileLines) {
 
 async function logAfter(fileLines, startPos) {
     for (let i = startPos; i < fileLines.length - 1; i++) {
+        console.log(fileLines[i]);
         fs.writeFileSync('mostRecent.txt', fileLines[i], 'utf8');
         await channel.send(fileLines[i]);
     }
